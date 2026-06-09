@@ -1,12 +1,19 @@
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
-public class Acpi {
+public class Acpi2 {
     [DllImport("kernel32.dll", SetLastError=true)]
-    public static extern int GetSystemFirmwareTable(uint Sig, uint ID, byte[] buf, uint sz);
+    public static extern uint GetSystemFirmwareTable(uint Sig, uint ID, IntPtr buf, uint sz);
 }
 "@
-$buf = New-Object byte[] 65536
-$sz = [Acpi]::GetSystemFirmwareTable(0x49504341, 0x54445344, $buf, 65536)
-[IO.File]::WriteAllBytes("C:\Users\Public\DSDT.dat", $buf[0..($sz-1)])
-Write-Host "Saved $sz bytes"
+
+$sz = [Acpi2]::GetSystemFirmwareTable(0x49504341, 0x54445344, [IntPtr]::Zero, 0)
+Write-Host "Required size: $sz bytes"
+
+$ptr = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($sz)
+[Acpi2]::GetSystemFirmwareTable(0x49504341, 0x54445344, $ptr, $sz)
+$bytes = New-Object byte[] $sz
+[System.Runtime.InteropServices.Marshal]::Copy($ptr, $bytes, 0, $sz)
+[System.Runtime.InteropServices.Marshal]::FreeHGlobal($ptr)
+[IO.File]::WriteAllBytes("$env:TEMP\DSDT.dat", $bytes)
+Write-Host "Saved to $env:TEMP\DSDT.dat"
