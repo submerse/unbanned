@@ -7,11 +7,13 @@ public class Acpi2 {
 }
 "@
 
-$sz = [Acpi2]::GetSystemFirmwareTable(0x49504341, 0x54445344, [IntPtr]::Zero, 0)
+# Provider = 'ACPI' = 0x41435049  (fixed)
+# Table    = 'DSDT' reversed = 0x54445344
+$sz = [Acpi2]::GetSystemFirmwareTable(0x41435049, 0x54445344, [IntPtr]::Zero, 0)
 Write-Host "Required size: $sz bytes"
 
 $ptr = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($sz)
-[Acpi2]::GetSystemFirmwareTable(0x49504341, 0x54445344, $ptr, $sz)
+[Acpi2]::GetSystemFirmwareTable(0x41435049, 0x54445344, $ptr, $sz)
 $bytes = New-Object byte[] $sz
 [System.Runtime.InteropServices.Marshal]::Copy($ptr, $bytes, 0, $sz)
 [System.Runtime.InteropServices.Marshal]::FreeHGlobal($ptr)
